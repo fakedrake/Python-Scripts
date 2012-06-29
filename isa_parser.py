@@ -11,7 +11,11 @@
 
 
 from itertools import takewhile, dropwhile
-from sys import argv
+from sys import argv, exit
+
+USAGE = """ isa_parser.py <filename> <row> <column>
+Outputs the text of the cell you queried for."""
+
 
 class Line(object):
     """Just a line aware of it's header, it is able to merge
@@ -90,6 +94,14 @@ class Line(object):
     def __repr__(self):
         return str(self._row)
 
+    def to_list(self):
+        """After a row is created and merged the above functions are
+        of no use yet we may need to access slices etc. For now the
+        solution is to turn it into a list. Later, we mayn need to be
+        able to recosntruct the table, so I will implement the rest
+        then."""
+        return self._row
+
 def parse_file(filename, sep):
     """Returns a list of lists with the cells of a table separated by
     separator. The header line is separated from the rest with an
@@ -105,16 +117,25 @@ def parse_file(filename, sep):
     head_rows = [i for i in takewhile(lambda x:not x.empty_line(), rrows)]
     head_rows[0].merge(head_rows[1:])
 
-    rows = [head_rows[0]]
+    rows = [head_rows[0].to_list()]
     leader = None
     for i in dropwhile(lambda x: not x.standalone(), rrows[len(head_rows):]):
         if not i.standalone():
             leader.merge([i])
         else:
-            rows+=[leader]
+            if leader != None:
+                rows+=[leader.to_list()]
             leader = i
 
     return rows
 if __name__ == "__main__":
+
+    if len(argv) == 1 or argv[1] == "help":
+        print USAGE
+        exit()
+
     rows = parse_file(argv[1], '|')
-    print rows
+
+    print rows[int(argv[2])][int(argv[3])]
+
+# Todo: format a template with the table cells
