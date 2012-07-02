@@ -10,6 +10,7 @@
 #   support for optional columns
 
 
+import re
 from itertools import takewhile, dropwhile
 from sys import argv, exit
 
@@ -61,8 +62,8 @@ class Line(object):
         """Remove spaces from string in the front and back"""
         return s.strip().rstrip()
 
-    def merge(self, line_list):
-        """Merge the list of lines with this line"""
+    def merge(self, line_list, join_char = "\n"):
+        """Merge the list of lines with this line. Join cells with provided character."""
         for l in line_list:
             if len(l) != len(self._row):
                 raise Exception("Unmatched number fo cells while merging lines.")
@@ -72,7 +73,9 @@ class Line(object):
                     return y
                 if not y:
                     return x
-                return x+"\n"+y
+                return x+join_char+y
+
+
 
             self._row = map(smart_concat, self._row, l._row)
 
@@ -102,7 +105,7 @@ class Line(object):
         then."""
         return self._row
 
-def parse_file(filename, sep):
+def parse_file(filename, sep = '|'):
     """Returns a list of lists with the cells of a table separated by
     separator. The header line is separated from the rest with an
     empty_line. Lines that are not standalone are merged with the
@@ -115,7 +118,7 @@ def parse_file(filename, sep):
 
     # Create header line in head_rows[0]
     head_rows = [i for i in takewhile(lambda x:not x.empty_line(), rrows)]
-    head_rows[0].merge(head_rows[1:])
+    head_rows[0].merge(head_rows[1:], "")
 
     rows = [head_rows[0].to_list()]
     leader = None
@@ -128,6 +131,18 @@ def parse_file(filename, sep):
             leader = i
 
     return rows
+
+class Row(dict):
+    """Use this class to obtain a dict of the row with the column names as keys"""
+    def __init__(self, headers, cells):
+        self._headers = map(self._strip_numbers, headers)
+        for i,c in zip(self._headers,cells):
+            self[i] = c
+
+    def _strip_numbers(self, cell):
+        return re.sub("\d", "", cell)
+
+
 if __name__ == "__main__":
 
     if len(argv) == 1 or argv[1] == "help":
