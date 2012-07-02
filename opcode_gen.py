@@ -22,32 +22,53 @@ import re
 # INST_TYPE_R1
 
 class OpcodeStruct:
+    """This class represents the C struct in binutils vreated in binutils/opcodes/<target-name>-opc.h"""
     def __init__(self, row):
+        """The argument here is a dict with the names and values of
+        info obtained from tables. Supported names:
+        syntax: <comma split argument list [rd | rs | rt | imm | Imm<num>]
+
+        """
         self._row = row
+        self._private_args = None
+
+        self.R = re.compile("r[st]")
+        self.RD = re.compile("rd")
+        self.IMM = re.compile("[iI]mm\d*")
 
     def get_name(self):
         return self._row["opcode"]
 
+    def _match_arg(self, regex, args = None):
+        """Match once and dont match again. Providing args resets self._private_args"""
+        if args:
+           self._private_args = args
+
+        for i in range(len(self._private_args)):
+            if regex.match(self._private_args[i]):
+                del self._private_args[i]
+                return True
+        return False
+
     def get_inst_type(self):
         """This has to do with arguments"""
-        prefix = "INST_TYPE_"
+        prefix = "INST_TYPE"
         identifier = ""
         regs = 0
 
-        arguments = self._row["syntax"].split(',')
+        self._private_args = self._row["syntax"].split(',')
         # rd,rs,rt,imm,Imm<Bits>
 
         #TODO specials, unsigned
-        if "rs" in arguments:
+        if self._match_arg(self.R):
             regs += 1
-        if "rt" in arguments:
+        if self._match_arg(self.R):
             regs += 1
-
-        if "rd" in arguments:
-            identifier += "RD"
-        for i in range(1,regs+1):
-            identifier += "_R"+str(i)
-        if "imm" in arguments:
+        if self._match_arg(self.RD):
+            identifier += "_RD"
+        for i in range(regs):
+            identifier += "_R"+str(i+1)
+        if self._match_arg(self.IMM):
             identifier += "_IMM"
 
         return prefix+identifier
