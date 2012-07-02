@@ -104,8 +104,14 @@ class OpcodeStruct:
         init = '{"%(name)s",   %(inst_type)s,  INST_NO_OFFSET, NO_DELAY_SLOT, IMMVAL_MASK_NON_SPECIAL, %(bitfield)s, %(mask)s, %(name)s, %(instr_type)s }' % dict(name = self.get_name(), inst_type = self.get_inst_type(), bitfield = hex(self.get_bitfield()), mask = hex(self.get_mask()), instr_type = self.get_instr_type())
         return init
 
-if __name__ == "__main__":
-    table = parse_file("testtable.txt")
+def opcodeStructFactory(filename):
+    """Create a list of opcode struct as presented in the table in filename (deliminer = '|')"""
+    table = parse_file(filename)
     head = table[0]
-    for i in table[1:]:
-        print OpcodeStruct(Row(head, i)),','
+    return [OpcodeStruct(Row(head, i)) for i in table[1:]]
+
+
+
+if __name__ == "__main__":
+    from sys import argv
+    print opcodeStructFactory(argv[1])
