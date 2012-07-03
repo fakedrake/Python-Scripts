@@ -130,7 +130,7 @@ def parse_file(filename, sep = '|'):
                 rows+=[leader.to_list()]
             leader = i
 
-    return rows
+    return rows+[leader.to_list()]
 
 class Row(dict):
     """Use this class to obtain a dict of the row with the column names as keys"""
@@ -151,6 +151,6 @@ if __name__ == "__main__":
 
     rows = parse_file(argv[1], '|')
 
-    print rows[int(argv[2])][int(argv[3])]
+    print rows
 
 # Todo: format a template with the table cells

@@ -27,7 +27,6 @@ class OpcodeStruct:
         """The argument here is a dict with the names and values of
         info obtained from tables. Supported names:
         syntax: <comma split argument list [rd | rs | rt | imm | Imm<num>]
-
         """
         self._row = row
         self._private_args = None
